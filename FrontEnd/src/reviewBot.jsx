@@ -16,7 +16,7 @@ export default function ReviewBotUI() {
   const [theme, setTheme] = useState('light');
   const [review, setReview] = useState(null);
   const [err, setErr] = useState(null);
-  const [language, setLanguage] = useState('javascript'); // Default language
+  const [language, setLanguage] = useState('javascript'); 
 
   useEffect(() => {
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
@@ -30,7 +30,7 @@ export default function ReviewBotUI() {
     try {
       const res = await axios.post('http://localhost:3000/ai/get-review/', {
         code,
-        language, // Send language with code
+        language,
       });
       setReview(res.data);
     } catch (error) {
