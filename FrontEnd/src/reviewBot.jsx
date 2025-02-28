@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { motion } from 'framer-motion';
-import { Button, Container, Row, Col } from 'react-bootstrap';
+import { Button, Container, Row, Col, Navbar, Form } from 'react-bootstrap';
 import { Sun, Moon } from 'lucide-react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeHighlight from 'rehype-highlight';
+import 'highlight.js/styles/github-dark.css';
 
 export default function ReviewBotUI() {
   const [code, setCode] = useState('// Paste your code here...');
   const [theme, setTheme] = useState('light');
   const [review, setReview] = useState(null);
   const [err, setErr] = useState(null);
+  const [language, setLanguage] = useState('javascript'); // Default language
 
   useEffect(() => {
     const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
@@ -24,6 +30,7 @@ export default function ReviewBotUI() {
     try {
       const res = await axios.post('http://localhost:3000/ai/get-review/', {
         code,
+        language, // Send language with code
       });
       setReview(res.data);
     } catch (error) {
@@ -72,10 +79,42 @@ export default function ReviewBotUI() {
               }`}
               whileHover={{ scale: 1.02 }}
             >
-              <h5 className="mb-2">Code Input</h5>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h5 className="mb-0">Code Input</h5>
+                <Form.Select
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  className="w-auto"
+                  style={{
+                    backgroundColor: theme === 'dark' ? '#343a40' : '#ffffff',
+                    color: theme === 'dark' ? '#ffffff' : '#000000',
+                    border:
+                      theme === 'dark'
+                        ? '1px solid #6c757d'
+                        : '1px solid #ced4da',
+                  }}
+                >
+                  <option value="javascript">JavaScript</option>
+                  <option value="python">Python</option>
+                  <option value="java">Java</option>
+                  <option value="c">C</option>
+                  <option value="cpp">C++</option>
+                  <option value="php">PHP</option>
+                  <option value="ruby">Ruby</option>
+                  <option value="typescript">TypeScript</option>
+                  <option value="go">Go</option>
+                  <option value="rust">Rust</option>
+                  <option value="swift">Swift</option>
+                  <option value="kotlin">Kotlin</option>
+                  <option value="html">HTML</option>
+                  <option value="css">CSS</option>
+                  <option value="sql">SQL</option>
+                </Form.Select>
+              </div>
+
               <Editor
                 height="450px"
-                language="javascript"
+                language={language}
                 theme={theme === 'dark' ? 'vs-dark' : 'light'}
                 value={code}
                 onChange={setCode}
@@ -92,14 +131,34 @@ export default function ReviewBotUI() {
 
           <Col md={6} className="d-flex flex-column">
             <motion.div
-              className={`p-3 border rounded-3 shadow-sm flex-grow-1 border border-secondary ${
+              className={`border rounded-3 shadow-sm flex-grow-1 border border-secondary ${
                 theme === 'dark' ? 'bg-dark text-white' : 'bg-light text-dark'
-              }`}
+              } p-0 pt-0 px-3 pb-3`}
               whileHover={{ scale: 1.02 }}
+              style={{
+                overflowY: 'auto',
+                maxHeight: '590px',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'gray',
+              }}
             >
-              <h5 className="mb-2">Review Output</h5>
-              <hr />
-              <div>{review}</div>
+              <nav
+                className={`navbar sticky-top shadow-sm px-3 pt-3 pb-3 ${
+                  theme === 'dark'
+                    ? 'bg-dark text-white border-bottom border-secondary'
+                    : 'bg-light text-dark border-bottom border-light'
+                }`}
+              >
+                <div className="container-fluid d-flex align-items-center">
+                  <h5 className="mb-0 fw-bold">Review Output</h5>
+                </div>
+              </nav>
+              <Markdown
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeHighlight]}
+              >
+                {review}
+              </Markdown>
             </motion.div>
           </Col>
         </Row>
